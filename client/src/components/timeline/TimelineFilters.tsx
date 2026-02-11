@@ -1,4 +1,5 @@
 
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { useLogStore } from '../../stores/logStore';
 import { useFilterStore } from '../../stores/filterStore';
 import type { Severity } from '../../types/logs';
@@ -12,9 +13,20 @@ const SEV_LABEL_COLORS: Record<Severity, string> = {
   fatal: 'bg-red-800/50 text-red-200',
 };
 
-export function TimelineFilters() {
+export interface TimelineFiltersRef {
+  focusSearch: () => void;
+}
+
+export const TimelineFilters = forwardRef<TimelineFiltersRef>((props, ref) => {
   const { parsedResult } = useLogStore();
   const { filters, setSeverityFilter, setServiceFilter, setSearch } = useFilterStore();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    focusSearch: () => {
+      searchInputRef.current?.focus();
+    },
+  }));
 
   if (!parsedResult) return null;
 
@@ -38,6 +50,7 @@ export function TimelineFilters() {
     <div className="px-4 py-3 border-b border-gray-800 space-y-2">
       {/* Search */}
       <input
+        ref={searchInputRef}
         type="text"
         value={filters.search}
         onChange={(e) => setSearch(e.target.value)}
@@ -82,4 +95,4 @@ export function TimelineFilters() {
       </div>
     </div>
   );
-}
+});
