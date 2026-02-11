@@ -1,14 +1,25 @@
 
-import { useMemo } from 'react';
+import { useMemo, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useLogStore } from '../../stores/logStore';
 import { useFilterStore } from '../../stores/filterStore';
 import { TimelineEvent } from './TimelineEvent';
-import { TimelineFilters } from './TimelineFilters';
+import { TimelineFilters, TimelineFiltersRef } from './TimelineFilters';
 import type { LogEntry } from '../../types/logs';
 
-export function Timeline() {
+export interface TimelineRef {
+  focusSearch: () => void;
+}
+
+export const Timeline = forwardRef<TimelineRef>((props, ref) => {
   const { parsedResult } = useLogStore();
   const { filters } = useFilterStore();
+  const filtersRef = useRef<TimelineFiltersRef>(null);
+
+  useImperativeHandle(ref, () => ({
+    focusSearch: () => {
+      filtersRef.current?.focusSearch();
+    },
+  }));
 
   const filtered = useMemo(() => {
     if (!parsedResult) return [];
@@ -37,7 +48,7 @@ export function Timeline() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <TimelineFilters />
+      <TimelineFilters ref={filtersRef} />
       <div className="flex-1 overflow-auto px-4 py-2">
         {filtered.map((entry) => (
           <TimelineEvent key={entry.id} entry={entry} />
@@ -53,4 +64,4 @@ export function Timeline() {
       </div>
     </div>
   );
-}
+});

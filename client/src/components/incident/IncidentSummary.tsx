@@ -1,19 +1,13 @@
 
 import { useIncidentStore } from '../../stores/incidentStore';
 import type { AIAnalysis } from '../../types/chat';
+import { AnalysisSkeleton } from '../common/LoadingSkeletons';
 
 export function IncidentSummary() {
   const { analysis, isAnalyzing } = useIncidentStore();
 
   if (isAnalyzing) {
-    return (
-      <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-        <div className="text-center">
-          <div className="text-3xl mb-3 animate-pulse">🧠</div>
-          <p>AI is analyzing the incident...</p>
-        </div>
-      </div>
-    );
+    return <AnalysisSkeleton />;
   }
 
   if (!analysis) {
