@@ -1,6 +1,7 @@
 
 import { create } from 'zustand';
-import type { LogEntry, ParsedLogResult, Severity } from '../types/log';
+import type { LogEntry, ParsedLogResult, Severity } from '../types/logs';
+import { useIncidentStore } from './incidentStore';
 
 interface LogState {
   rawInput: string;

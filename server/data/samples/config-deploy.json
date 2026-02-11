@@ -1,0 +1,25 @@
+{
+  "id": "config-deploy",
+  "name": "Feature Flag Deployment Gone Wrong",
+  "description": "A feature flag change enables a new code path with a null reference bug, causing 30% of requests to fail until rollback.",
+  "category": "config",
+  "expectedRootCause": "Feature flag 'enable-new-pricing-engine' activated at 10:15:00Z introduced a null reference in PricingEngine.calculateDiscount() when user has no subscription history.",
+  "serviceGraph": {
+    "nodes": [
+      { "id": "api-gateway", "name": "API Gateway", "type": "gateway", "status": "degraded", "errorCount": 412 },
+      { "id": "pricing-service", "name": "Pricing Service", "type": "api", "status": "degraded", "errorCount": 1893 },
+      { "id": "config-service", "name": "Config Service", "type": "api", "status": "healthy", "errorCount": 0 },
+      { "id": "catalog-service", "name": "Catalog Service", "type": "api", "status": "healthy", "errorCount": 0 },
+      { "id": "pricing-db", "name": "Pricing DB", "type": "database", "status": "healthy", "errorCount": 0 },
+      { "id": "feature-flags", "name": "LaunchDarkly", "type": "external", "status": "healthy", "errorCount": 0 }
+    ],
+    "edges": [
+      { "source": "api-gateway", "target": "pricing-service", "protocol": "http", "label": "GET /pricing" },
+      { "source": "api-gateway", "target": "catalog-service", "protocol": "http", "label": "GET /catalog" },
+      { "source": "pricing-service", "target": "pricing-db", "protocol": "sql" },
+      { "source": "pricing-service", "target": "config-service", "protocol": "grpc", "label": "getConfig" },
+      { "source": "config-service", "target": "feature-flags", "protocol": "http", "label": "Flag evaluation" }
+    ]
+  },
+  "logs": "2025-01-20T10:14:55.000Z INFO  [config-service] Feature flag update received: enable-new-pricing-engine = true (was: false)\n2025-01-20T10:14:55.001Z INFO  [config-service] Flag change deployed by user=eng_sarah scope=production rollout=100%\n2025-01-20T10:14:55.100Z INFO  [pricing-service] Config refresh: enable-new-pricing-engine now ENABLED\n2025-01-20T10:14:55.101Z INFO  [pricing-service] Switching to NewPricingEngine for discount calculations\n2025-01-20T10:15:00.200Z INFO  [pricing-service] Processing pricing request price_req_001 user=usr_220 plan=premium\n2025-01-20T10:15:00.250Z INFO  [pricing-service] NewPricingEngine.calculateDiscount() user=usr_220 subscriptionHistory=3 items\n2025-01-20T10:15:00.300Z INFO  [pricing-service] Pricing response price_req_001 basePrice=15.99 discount=20% finalPrice=12.79\n2025-01-20T10:15:01.100Z INFO  [pricing-service] Processing pricing request price_req_002 user=usr_887 plan=basic\n2025-01-20T10:15:01.150Z ERROR [pricing-service] NullReferenceException in NewPricingEngine.calculateDiscount() at line 142: Cannot read property 'length' of undefined - user=usr_887 subscriptionHistory=null\n2025-01-20T10:15:01.151Z ERROR [pricing-service] Stack trace: NewPricingEngine.calculateDiscount (pricing-engine.ts:142) > PricingController.getPrice (controller.ts:58) > Router.handle (router.ts:23)\n2025-01-20T10:15:01.200Z ERROR [api-gateway] 500 Internal Server Error from pricing-service for GET /api/v1/pricing?user=usr_887\n2025-01-20T10:15:02.000Z INFO  [pricing-service] Processing pricing request price_req_003 user=usr_103 plan=premium\n2025-01-20T10:15:02.050Z INFO  [pricing-service] NewPricingEngine.calculateDiscount() user=usr_103 subscriptionHistory=7 items\n2025-01-20T10:15:02.100Z INFO  [pricing-service] Pricing response price_req_003 OK\n2025-01-20T10:15:02.500Z ERROR [pricing-service] NullReferenceException in NewPricingEngine.calculateDiscount() at line 142 - user=usr_445 subscriptionHistory=null\n2025-01-20T10:15:03.100Z ERROR [pricing-service] NullReferenceException in NewPricingEngine.calculateDiscount() at line 142 - user=usr_612 subscriptionHistory=null\n2025-01-20T10:15:03.500Z ERROR [pricing-service] NullReferenceException in NewPricingEngine.calculateDiscount() at line 142 - user=usr_901 subscriptionHistory=null\n2025-01-20T10:15:04.000Z WARN  [pricing-service] Error rate spike detected: 31% of requests failing (threshold: 5%)\n2025-01-20T10:15:04.001Z WARN  [pricing-service] All failures in NewPricingEngine.calculateDiscount - NullReferenceException\n2025-01-20T10:15:04.100Z ERROR [api-gateway] Elevated 5xx rate from pricing-service: 31% (last 30s)\n2025-01-20T10:15:05.000Z WARN  [pricing-service] Pattern detected: failures correlate with users where subscriptionHistory is null (new users / no prior subscription)\n2025-01-20T10:15:10.000Z INFO  [config-service] Feature flag update received: enable-new-pricing-engine = false (rollback by user=eng_sarah)\n2025-01-20T10:15:10.100Z INFO  [pricing-service] Config refresh: enable-new-pricing-engine now DISABLED\n2025-01-20T10:15:10.101Z INFO  [pricing-service] Switching back to LegacyPricingEngine for discount calculations\n2025-01-20T10:15:11.000Z INFO  [pricing-service] Error rate normalizing: 0% failures (last 10s)\n2025-01-20T10:15:15.000Z INFO  [api-gateway] All upstreams healthy - error rate 0%"
+}
