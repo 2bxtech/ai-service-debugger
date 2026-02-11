@@ -1,7 +1,7 @@
 
 import { useLogStore } from '../../stores/logStore';
 import { useFilterStore } from '../../stores/filterStore';
-import type { Severity } from '../../types/log';
+import type { Severity } from '../../types/logs';
 
 const SEVERITIES: Severity[] = ['debug', 'info', 'warn', 'error', 'fatal'];
 const SEV_LABEL_COLORS: Record<Severity, string> = {

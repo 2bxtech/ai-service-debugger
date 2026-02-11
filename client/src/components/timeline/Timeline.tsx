@@ -4,7 +4,7 @@ import { useLogStore } from '../../stores/logStore';
 import { useFilterStore } from '../../stores/filterStore';
 import { TimelineEvent } from './TimelineEvent';
 import { TimelineFilters } from './TimelineFilters';
-import type { LogEntry } from '../../types/log';
+import type { LogEntry } from '../../types/logs';
 
 export function Timeline() {
   const { parsedResult } = useLogStore();

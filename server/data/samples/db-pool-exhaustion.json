@@ -1,0 +1,28 @@
+{
+  "id": "db-pool-exhaustion",
+  "name": "Database Connection Pool Exhaustion",
+  "description": "A slow analytical query blocks the connection pool, causing timeouts across all services that depend on the shared database.",
+  "category": "resource",
+  "expectedRootCause": "Unoptimized analytical query (missing index on user_events.created_at) holding connections for 45+ seconds, exhausting the shared connection pool for recommendation-service and content-service.",
+  "serviceGraph": {
+    "nodes": [
+      { "id": "api-gateway", "name": "API Gateway", "type": "gateway", "status": "degraded", "errorCount": 234 },
+      { "id": "recommendation-svc", "name": "Recommendation Service", "type": "api", "status": "down", "errorCount": 1567 },
+      { "id": "content-service", "name": "Content Service", "type": "api", "status": "degraded", "errorCount": 445 },
+      { "id": "analytics-worker", "name": "Analytics Worker", "type": "worker", "status": "degraded", "errorCount": 12 },
+      { "id": "main-db", "name": "PostgreSQL Primary", "type": "database", "status": "degraded", "errorCount": 0 },
+      { "id": "content-cache", "name": "Content Cache", "type": "cache", "status": "healthy", "errorCount": 0 },
+      { "id": "event-queue", "name": "Kafka", "type": "queue", "status": "healthy", "errorCount": 0 }
+    ],
+    "edges": [
+      { "source": "api-gateway", "target": "recommendation-svc", "protocol": "http", "label": "GET /recommendations" },
+      { "source": "api-gateway", "target": "content-service", "protocol": "http", "label": "GET /content" },
+      { "source": "recommendation-svc", "target": "main-db", "protocol": "sql", "label": "Shared pool" },
+      { "source": "content-service", "target": "main-db", "protocol": "sql", "label": "Shared pool" },
+      { "source": "content-service", "target": "content-cache", "protocol": "redis" },
+      { "source": "analytics-worker", "target": "main-db", "protocol": "sql", "label": "Shared pool" },
+      { "source": "analytics-worker", "target": "event-queue", "protocol": "kafka" }
+    ]
+  },
+  "logs": "2025-01-22T09:00:00.000Z INFO  [analytics-worker] Starting daily user engagement report job_id=daily_report_0122\n2025-01-22T09:00:00.100Z INFO  [analytics-worker] Executing query: SELECT user_id, COUNT(*) as events FROM user_events WHERE created_at > '2025-01-01' GROUP BY user_id\n2025-01-22T09:00:00.200Z INFO  [main-db] Query started pid=4521 query=SELECT user_id, COUNT(*) FROM user_events\n2025-01-22T09:00:00.201Z WARN  [main-db] Sequential scan on user_events (42M rows) - no index on created_at column\n2025-01-22T09:00:05.000Z INFO  [main-db] Connection pool status: 18/20 active connections\n2025-01-22T09:00:10.000Z INFO  [recommendation-svc] Processing recommendation request for user=usr_331\n2025-01-22T09:00:10.100Z INFO  [recommendation-svc] Querying user preferences from main-db\n2025-01-22T09:00:10.200Z WARN  [main-db] Connection pool status: 20/20 active connections - pool exhausted\n2025-01-22T09:00:10.300Z WARN  [recommendation-svc] Database connection acquisition timeout after 5000ms\n2025-01-22T09:00:10.301Z ERROR [recommendation-svc] Failed to fetch user preferences - connection pool exhausted user=usr_331\n2025-01-22T09:00:15.000Z ERROR [recommendation-svc] 23 consecutive database connection failures\n2025-01-22T09:00:15.001Z ERROR [api-gateway] recommendation-svc returning 503 for all requests\n2025-01-22T09:00:20.000Z WARN  [main-db] Long-running query pid=4521 elapsed=20s\n2025-01-22T09:00:30.000Z WARN  [main-db] Long-running query pid=4521 elapsed=30s - rows scanned: 28M/42M\n2025-01-22T09:00:45.000Z ERROR [main-db] Query completed after 45s - connection pool recovered"
+}

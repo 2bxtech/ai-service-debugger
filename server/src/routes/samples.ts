@@ -39,3 +39,4 @@ samplesRouter.get('/:id', (req, res) => {
   } catch {
     res.status(404).json({ error: `Sample '${req.params.id}' not found` });
   }
+});

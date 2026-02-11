@@ -1,5 +1,5 @@
 
-import type { LogEntry, Severity } from '../../types/log';
+import type { LogEntry, Severity } from '../../types/logs';
 
 const SEVERITY_COLORS: Record<Severity, string> = {
   debug: 'text-gray-500 bg-gray-500/10',

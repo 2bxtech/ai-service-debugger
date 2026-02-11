@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import type { LogFilter, Severity } from '../types/log';
+import type { LogFilter, Severity } from '../types/logs';
 
 interface FilterState {
   filters: LogFilter;
