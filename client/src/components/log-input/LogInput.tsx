@@ -1,9 +1,13 @@
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useLogStore } from '../../stores/logStore';
 import { useIncidentStore } from '../../stores/incidentStore';
 
-export function LogInput() {
+export interface LogInputRef {
+  analyze: () => void;
+}
+
+export const LogInput = forwardRef<LogInputRef>((props, ref) => {
   const { rawInput, setRawInput, parseAndLoad, isLoading, error } = useLogStore();
   const { serviceGraph, runInitialAnalysis } = useIncidentStore();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -13,6 +17,10 @@ export function LogInput() {
     await parseAndLoad(rawInput);
     await runInitialAnalysis(rawInput, serviceGraph);
   }, [rawInput, serviceGraph, parseAndLoad, runInitialAnalysis]);
+
+  useImperativeHandle(ref, () => ({
+    analyze: handleAnalyze,
+  }));
 
   const handleFileDrop = useCallback(
     async (e: React.DragEvent) => {
@@ -81,4 +89,4 @@ export function LogInput() {
       </button>
     </div>
   );
-}
+});

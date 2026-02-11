@@ -1,17 +1,29 @@
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useChatStore } from '../../stores/chatStore';
 import { useLogStore } from '../../stores/logStore';
 import { useIncidentStore } from '../../stores/incidentStore';
 import { ChatMessage } from './ChatMessage';
 import { SuggestedQuestions } from './SuggestedQuestions';
+import { ChatSkeleton } from '../common/LoadingSkeletons';
 
-export function ChatPanel() {
+export interface ChatPanelRef {
+  focusInput: () => void;
+}
+
+export const ChatPanel = forwardRef<ChatPanelRef>((props, ref) => {
   const [input, setInput] = useState('');
   const { messages, isLoading, sendMessage } = useChatStore();
   const { rawInput } = useLogStore();
   const { serviceGraph } = useIncidentStore();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    focusInput: () => {
+      inputRef.current?.focus();
+    },
+  }));
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -42,16 +54,7 @@ export function ChatPanel() {
         ) : (
           messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)
         )}
-        {isLoading && (
-          <div className="flex items-center gap-2 text-gray-400 text-sm">
-            <div className="flex gap-1">
-              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" />
-              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.1s]" />
-              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-            </div>
-            Analyzing...
-          </div>
-        )}
+        {isLoading && <ChatSkeleton />}
       </div>
 
       {/* Suggested questions */}
@@ -63,6 +66,7 @@ export function ChatPanel() {
       <div className="p-4 border-t border-gray-800">
         <div className="flex gap-2">
           <input
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -82,4 +86,4 @@ export function ChatPanel() {
       </div>
     </div>
   );
-}
+});
