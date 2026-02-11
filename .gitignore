@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Vite
+client/.vite/
+
+# IDE
+.vscode/*
+!.vscode/mcp.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+.cache/
+
+# Notes and docs (local only)
+*.txt
+*.md
+!README.md
