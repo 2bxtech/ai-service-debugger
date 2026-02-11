@@ -18,10 +18,10 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
         {isUser ? (
           <div className="whitespace-pre-wrap">{message.content}</div>
         ) : (
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            className="markdown-content"
-            components={{
+          <div>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
               // Paragraphs
               p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
               // Headings
@@ -90,6 +90,7 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
           >
             {message.content}
           </ReactMarkdown>
+          </div>
         )}
         {message.referencedLogLines && message.referencedLogLines.length > 0 && (
           <div className="mt-2 pt-2 border-t border-gray-700 text-xs text-gray-400">
