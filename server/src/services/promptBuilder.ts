@@ -1,4 +1,6 @@
 
+import type { AnalyzeRequest } from './anthropic';
+
 function buildSystemPrompt(req: AnalyzeRequest): string {
   const graphDescription = formatServiceGraph(req.serviceGraph);
 

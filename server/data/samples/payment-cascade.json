@@ -1,0 +1,28 @@
+{
+  "id": "payment-cascade",
+  "name": "Payment Processing Timeout Cascade",
+  "description": "A slow third-party payment processor triggers a retry storm that cascades through auth and API gateway services.",
+  "category": "cascade",
+  "expectedRootCause": "Third-party payment processor latency spike (avg 200ms → 12s) causing connection pool exhaustion in payment-service, triggering retry storms that overload auth-service.",
+  "serviceGraph": {
+    "nodes": [
+      { "id": "api-gateway", "name": "API Gateway", "type": "gateway", "status": "degraded", "errorCount": 847 },
+      { "id": "payment-service", "name": "Payment Service", "type": "api", "status": "down", "errorCount": 2341 },
+      { "id": "auth-service", "name": "Auth Service", "type": "api", "status": "degraded", "errorCount": 1205 },
+      { "id": "user-service", "name": "User Service", "type": "api", "status": "healthy", "errorCount": 3 },
+      { "id": "payment-processor", "name": "Stripe API", "type": "external", "status": "degraded", "errorCount": 0 },
+      { "id": "payments-db", "name": "Payments DB", "type": "database", "status": "healthy", "errorCount": 0 },
+      { "id": "redis-cache", "name": "Redis Cache", "type": "cache", "status": "healthy", "errorCount": 0 }
+    ],
+    "edges": [
+      { "source": "api-gateway", "target": "payment-service", "protocol": "http", "label": "POST /payments" },
+      { "source": "api-gateway", "target": "auth-service", "protocol": "http", "label": "Token validation" },
+      { "source": "api-gateway", "target": "user-service", "protocol": "http", "label": "GET /users" },
+      { "source": "payment-service", "target": "payment-processor", "protocol": "http", "label": "Charge API" },
+      { "source": "payment-service", "target": "payments-db", "protocol": "sql" },
+      { "source": "payment-service", "target": "auth-service", "protocol": "grpc", "label": "validateToken" },
+      { "source": "auth-service", "target": "redis-cache", "protocol": "redis", "label": "Session lookup" }
+    ]
+  },
+  "logs": "2025-01-15T14:23:01.003Z INFO  [payment-service] Processing payment request pay_8x7k2m amount=49.99 currency=USD user=usr_441\n2025-01-15T14:23:01.205Z INFO  [payment-service] Calling Stripe API for charge ch_3x9f timeout=5000ms\n2025-01-15T14:23:06.210Z WARN  [payment-service] Stripe API response slow latency=5005ms charge=ch_3x9f - approaching timeout\n2025-01-15T14:23:06.211Z INFO  [payment-service] Retrying Stripe API call attempt=2/3 charge=ch_3x9f\n2025-01-15T14:23:11.218Z ERROR [payment-service] Stripe API timeout after 5007ms attempt=2 charge=ch_3x9f\n2025-01-15T14:23:11.219Z INFO  [payment-service] Retrying Stripe API call attempt=3/3 charge=ch_3x9f\n2025-01-15T14:23:16.225Z ERROR [payment-service] Stripe API timeout after 5006ms attempt=3 FINAL charge=ch_3x9f\n2025-01-15T14:23:16.226Z ERROR [payment-service] Payment failed after 3 retries pay_8x7k2m elapsed=15222ms\n2025-01-15T14:23:16.300Z WARN  [payment-service] Connection pool utilization at 87% (43/50 connections)\n2025-01-15T14:23:17.100Z INFO  [payment-service] Processing payment request pay_9r3j1n amount=129.00 currency=USD user=usr_882\n2025-01-15T14:23:17.102Z INFO  [payment-service] Processing payment request pay_2k8m4p amount=19.99 currency=USD user=usr_117\n2025-01-15T14:23:17.200Z INFO  [payment-service] Calling Stripe API for charge ch_7y2k timeout=5000ms\n2025-01-15T14:23:17.201Z INFO  [payment-service] Calling Stripe API for charge ch_1p5r timeout=5000ms\n2025-01-15T14:23:22.205Z ERROR [payment-service] Stripe API timeout after 5005ms attempt=1 charge=ch_7y2k\n2025-01-15T14:23:22.206Z ERROR [payment-service] Stripe API timeout after 5005ms attempt=1 charge=ch_1p5r\n2025-01-15T14:23:22.300Z ERROR [payment-service] Connection pool utilization at 96% (48/50 connections)\n2025-01-15T14:23:22.301Z WARN  [payment-service] Circuit breaker OPEN for stripe-api - failure rate 94% (threshold: 50%)\n2025-01-15T14:23:22.500Z ERROR [api-gateway] Upstream timeout from payment-service for POST /api/v1/payments - 503 Service Unavailable\n2025-01-15T14:23:22.600Z WARN  [auth-service] Elevated request rate detected - 340 req/s (normal: 120 req/s)\n2025-01-15T14:23:22.700Z WARN  [auth-service] Token validation latency increased p99=450ms (normal: 12ms)\n2025-01-15T14:23:23.100Z ERROR [api-gateway] Upstream timeout from payment-service for POST /api/v1/payments - 503 Service Unavailable\n2025-01-15T14:23:23.200Z ERROR [api-gateway] Upstream timeout from auth-service for token validation - 504 Gateway Timeout\n2025-01-15T14:23:23.300Z ERROR [auth-service] Redis connection pool exhausted - cannot validate tokens\n2025-01-15T14:23:23.400Z FATAL [api-gateway] Multiple upstream failures - entering degraded mode. Healthy upstreams: [user-service]\n2025-01-15T14:23:23.401Z ERROR [api-gateway] Returning 503 for all payment and auth-dependent routes\n2025-01-15T14:23:24.000Z INFO  [payment-service] Circuit breaker preventing calls to stripe-api - fast-failing requests\n2025-01-15T14:23:25.000Z WARN  [api-gateway] Error rate: 73% of requests returning 5xx (last 60s)\n2025-01-15T14:23:30.000Z INFO  [payment-service] Circuit breaker half-open - testing stripe-api with single request\n2025-01-15T14:23:32.100Z INFO  [payment-service] Stripe API responded latency=2100ms - elevated but functional\n2025-01-15T14:23:32.200Z INFO  [payment-service] Circuit breaker CLOSED - resuming normal traffic to stripe-api\n2025-01-15T14:23:33.000Z INFO  [auth-service] Request rate normalizing - 145 req/s\n2025-01-15T14:23:35.000Z INFO  [api-gateway] Error rate decreasing: 12% of requests returning 5xx (last 60s)\n2025-01-15T14:23:40.000Z INFO  [api-gateway] System recovering - all upstreams healthy"
+}

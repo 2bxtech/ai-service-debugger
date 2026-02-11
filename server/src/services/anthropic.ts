@@ -1,5 +1,6 @@
 
 import Anthropic from '@anthropic-ai/sdk';
+import { buildSystemPrompt, buildMessages } from './promptBuilder';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
