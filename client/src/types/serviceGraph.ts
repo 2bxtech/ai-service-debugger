@@ -1,9 +1,12 @@
 
+export type ServiceType = 'api' | 'worker' | 'database' | 'cache' | 'queue' | 'gateway' | 'external';
+export type ServiceStatus = 'healthy' | 'degraded' | 'down' | 'unknown';
+
 export interface ServiceNode {
   id: string;
   name: string;
-  type: 'api' | 'worker' | 'database' | 'cache' | 'queue' | 'gateway' | 'external';
-  status: 'healthy' | 'degraded' | 'down' | 'unknown';
+  type: ServiceType;
+  status: ServiceStatus;
   errorCount: number;
 }
 

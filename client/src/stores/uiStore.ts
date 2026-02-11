@@ -15,7 +15,7 @@ interface UIState {
 
 export const useUIStore = create<UIState>((set) => ({
   theme: 'dark',
-  activePanel: 'logs',
+  activePanel: 'analysis',
   sidebarOpen: true,
 
   toggleTheme: () =>
