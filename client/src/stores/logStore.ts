@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import type { LogEntry, ParsedLogResult, Severity } from '../types/logs';
+import type { ParsedLogResult } from '../types/logs';
 import { useIncidentStore } from './incidentStore';
 
 interface LogState {
@@ -15,15 +15,6 @@ interface LogState {
   loadSample: (sampleId: string) => Promise<void>;
   clear: () => void;
 }
-
-const EMPTY_RESULT: ParsedLogResult = {
-  entries: [],
-  services: [],
-  timeRange: { start: '', end: '' },
-  severityCounts: { debug: 0, info: 0, warn: 0, error: 0, fatal: 0 },
-  format: 'unknown',
-  parseErrors: [],
-};
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 

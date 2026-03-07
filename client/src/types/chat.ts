@@ -1,3 +1,6 @@
+import type { Severity, ParsedLogResult } from './logs';
+import type { ServiceGraph } from './serviceGraph';
+
 export type MessageRole = 'user' | 'assistant' | 'system';
 
 export interface ChatMessage {
