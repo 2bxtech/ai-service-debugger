@@ -17,7 +17,7 @@ export interface TimelineFiltersRef {
   focusSearch: () => void;
 }
 
-export const TimelineFilters = forwardRef<TimelineFiltersRef>((props, ref) => {
+export const TimelineFilters = forwardRef<TimelineFiltersRef>((_props, ref) => {
   const { parsedResult } = useLogStore();
   const { filters, setSeverityFilter, setServiceFilter, setSearch } = useFilterStore();
   const searchInputRef = useRef<HTMLInputElement>(null);

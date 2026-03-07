@@ -1,3 +1,4 @@
+import type { ServiceGraph } from './serviceGraph';
 
 export interface IncidentScenario {
   id: string;
