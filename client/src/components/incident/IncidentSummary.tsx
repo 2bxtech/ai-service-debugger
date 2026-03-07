@@ -1,6 +1,5 @@
 
 import { useIncidentStore } from '../../stores/incidentStore';
-import type { AIAnalysis } from '../../types/chat';
 import { AnalysisSkeleton } from '../common/LoadingSkeletons';
 
 export function IncidentSummary() {

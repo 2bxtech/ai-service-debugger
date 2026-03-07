@@ -11,7 +11,7 @@ export interface ChatPanelRef {
   focusInput: () => void;
 }
 
-export const ChatPanel = forwardRef<ChatPanelRef>((props, ref) => {
+export const ChatPanel = forwardRef<ChatPanelRef>((_props, ref) => {
   const [input, setInput] = useState('');
   const { messages, isLoading, sendMessage } = useChatStore();
   const { rawInput } = useLogStore();

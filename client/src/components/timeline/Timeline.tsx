@@ -4,13 +4,11 @@ import { useLogStore } from '../../stores/logStore';
 import { useFilterStore } from '../../stores/filterStore';
 import { TimelineEvent } from './TimelineEvent';
 import { TimelineFilters, TimelineFiltersRef } from './TimelineFilters';
-import type { LogEntry } from '../../types/logs';
-
 export interface TimelineRef {
   focusSearch: () => void;
 }
 
-export const Timeline = forwardRef<TimelineRef>((props, ref) => {
+export const Timeline = forwardRef<TimelineRef>((_props, ref) => {
   const { parsedResult } = useLogStore();
   const { filters } = useFilterStore();
   const filtersRef = useRef<TimelineFiltersRef>(null);

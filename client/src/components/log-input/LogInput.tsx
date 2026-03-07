@@ -7,7 +7,7 @@ export interface LogInputRef {
   analyze: () => void;
 }
 
-export const LogInput = forwardRef<LogInputRef>((props, ref) => {
+export const LogInput = forwardRef<LogInputRef>((_props, ref) => {
   const { rawInput, setRawInput, parseAndLoad, isLoading, error } = useLogStore();
   const { serviceGraph, runInitialAnalysis } = useIncidentStore();
   const fileRef = useRef<HTMLInputElement>(null);

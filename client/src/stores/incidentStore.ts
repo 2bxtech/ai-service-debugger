@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import type { AIAnalysis, DebugSession } from '../types/chat';
+import type { AIAnalysis } from '../types/chat';
 import type { ServiceGraph } from '../types/serviceGraph';
 
 interface IncidentState {
