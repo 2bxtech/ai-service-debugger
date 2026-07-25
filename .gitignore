@@ -36,3 +36,6 @@ npm-debug.log*
 *.txt
 *.md
 !README.md
+
+# local dev files
+.github/.personal/

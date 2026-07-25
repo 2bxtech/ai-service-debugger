@@ -1,8 +1,10 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { buildSystemPrompt, buildMessages } from './promptBuilder';
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import {
+  getAnthropicClient,
+  getAnthropicConfig,
+} from '../config/anthropic';
 
 export interface AnalyzeRequest {
   logs: string;
@@ -14,12 +16,17 @@ export interface AnalyzeRequest {
   userMessage?: string; // For follow-up questions
 }
 
-export async function analyzeIncident(req: AnalyzeRequest): Promise<string> {
+type AnthropicClient = Pick<Anthropic, 'messages'>;
+
+export async function analyzeIncident(
+  req: AnalyzeRequest,
+  client: AnthropicClient = getAnthropicClient(),
+): Promise<string> {
   const systemPrompt = buildSystemPrompt(req);
   const messages = buildMessages(req);
 
   const response = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250514',
+    model: getAnthropicConfig().model,
     max_tokens: 2048,
     system: systemPrompt,
     messages,
@@ -29,11 +36,14 @@ export async function analyzeIncident(req: AnalyzeRequest): Promise<string> {
   return textBlock?.text ?? 'Unable to generate analysis.';
 }
 
-export async function analyzeInitial(req: AnalyzeRequest): Promise<string> {
+export async function analyzeInitial(
+  req: AnalyzeRequest,
+  client: AnthropicClient = getAnthropicClient(),
+): Promise<string> {
   const systemPrompt = buildSystemPrompt(req);
 
   const response = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250514',
+    model: getAnthropicConfig().model,
     max_tokens: 3000,
     system: systemPrompt,
     messages: [

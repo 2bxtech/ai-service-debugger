@@ -1,6 +1,7 @@
 
 import { Router, Request, Response } from 'express';
 import { analyzeIncident, analyzeInitial, AnalyzeRequest } from '../services/anthropic';
+import { toProviderHttpError } from '../services/anthropicErrors';
 
 export const analyzeRouter = Router();
 
@@ -20,9 +21,13 @@ analyzeRouter.post('/initial', async (req: Request, res: Response) => {
     } catch {
       return res.json({ analysis: null, rawText: result });
     }
-  } catch (err: any) {
-    console.error('Analysis error:', err.message);
-    return res.status(500).json({ error: 'Analysis failed', details: err.message });
+  } catch (err: unknown) {
+    const failure = toProviderHttpError(err);
+    console.error('Analysis error', {
+      providerStatus: failure.providerStatus,
+      requestId: failure.requestId,
+    });
+    return res.status(failure.status).json({ error: failure.message });
   }
 });
 
@@ -35,8 +40,12 @@ analyzeRouter.post('/chat', async (req: Request, res: Response) => {
     }
     const reply = await analyzeIncident(body);
     return res.json({ reply });
-  } catch (err: any) {
-    console.error('Chat error:', err.message);
-    return res.status(500).json({ error: 'Chat failed', details: err.message });
+  } catch (err: unknown) {
+    const failure = toProviderHttpError(err);
+    console.error('Chat error', {
+      providerStatus: failure.providerStatus,
+      requestId: failure.requestId,
+    });
+    return res.status(failure.status).json({ error: failure.message });
   }
 });
