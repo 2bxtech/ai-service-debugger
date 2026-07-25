@@ -6,7 +6,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "tsc --noEmit",
-    "test": "tsx --test src/config/anthropic.test.ts src/services/anthropic.test.ts src/services/anthropicErrors.test.ts"
+    "test": "tsx --test src/config/anthropic.test.ts src/services/anthropic.test.ts src/services/anthropicErrors.test.ts src/services/logParser.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
