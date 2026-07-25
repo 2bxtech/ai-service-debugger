@@ -5,9 +5,11 @@ import cors from 'cors';
 import { analyzeRouter } from './routes/analyze';
 import { parseRouter } from './routes/parse';
 import { samplesRouter } from './routes/samples';
+import { getAnthropicConfig } from './config/anthropic';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const anthropicConfig = getAnthropicConfig();
 
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: '5mb' }));
@@ -22,4 +24,5 @@ app.get('/api/health', (_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Anthropic model: ${anthropicConfig.model}`);
 });

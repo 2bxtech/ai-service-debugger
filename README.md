@@ -8,7 +8,7 @@ Production incident debugging tool for microservices. Combines log analysis, ser
 
 - **Parses logs** from multiple formats (ISO+bracket, JSON, syslog)
 - **Visualizes service topology** with animated cascade chains showing failure propagation
-- **AI analysis** using Claude Sonnet 4.5 to identify root causes, blast radius, and suggested fixes
+- **AI analysis** using Claude Sonnet 5 by default to identify root causes, blast radius, and suggested fixes
 - **Interactive chat** for follow-up questions about the incident
 - **Timeline filtering** by severity, service, and time range with cross-panel interactions
 
@@ -25,7 +25,7 @@ Built to demonstrate clean React/TypeScript architecture and thoughtful AI integ
 
 **Backend**
 - Node.js + Express + TypeScript
-- Anthropic Claude API (claude-sonnet-4-5-20250514)
+- Anthropic Claude API (`claude-sonnet-5` by default, configurable at runtime)
 - Multi-format log parser
 
 ## Running Locally
@@ -40,7 +40,8 @@ cd ai-service-debugger
 # 2. Server setup
 cd server
 cp .env.example .env
-# Add your ANTHROPIC_API_KEY to .env
+# Add your ANTHROPIC_API_KEY to .env.
+# ANTHROPIC_MODEL defaults to claude-sonnet-5 and can be overridden.
 npm install
 npm run dev
 
@@ -51,6 +52,21 @@ npm run dev
 ```
 
 Visit `http://localhost:5173`
+
+### Claude model configuration
+
+The server uses `claude-sonnet-5` unless `ANTHROPIC_MODEL` is set to another
+compatible Claude model:
+
+```env
+ANTHROPIC_API_KEY=your-api-key-here
+ANTHROPIC_MODEL=claude-sonnet-5
+```
+
+Both initial analysis and follow-up chat use this setting. The server validates
+the API key at startup and returns sanitized responses for authentication,
+rate-limit, unavailable-model, timeout, and provider failures. Secrets and raw
+provider responses are not returned to the browser.
 
 ## Sample Scenarios
 
@@ -103,8 +119,9 @@ client/src/
   └── hooks/         # Custom hooks (keyboard shortcuts, etc.)
 
 server/src/
+  ├── config/        # Environment and Anthropic model configuration
   ├── routes/        # Express endpoints (parse, analyze, samples)
-  ├── services/      # Anthropic integration, prompt building
+  ├── services/      # Anthropic integration, error mapping, prompt building
   └── data/          # Sample incident JSON files
 ```
 
@@ -112,22 +129,44 @@ server/src/
 
 ## Project Status
 
-- ✅ Phase 1: Full-stack infrastructure, log parsing, AI integration
-- ✅ Phase 2: Service graph visualization with cascade animation
-- ✅ Phase 3: UX polish (markdown, error boundaries, keyboard shortcuts, responsive design)
-- 🚧 Phase 4: Deployment (Vercel + Railway/Render)
+- Complete: Full-stack infrastructure, log parsing, and AI integration
+- Complete: Service graph visualization with cascade animation
+- Complete: UX polish (markdown, error boundaries, keyboard shortcuts, responsive design)
+- Complete: Claude Sonnet 5 migration, runtime model configuration, and provider error handling
+- Planned: Deployment (Vercel + Railway/Render)
 
-**Documentation:** See [docs/](./docs/) for detailed retrospectives on each development phase.
+## Verification
+
+Run the checks from each package directory:
+
+```bash
+# Server: 9 mocked tests; no billable Anthropic requests
+cd server
+npm test
+npm run lint
+npm run build
+
+# Client: TypeScript check and production build
+cd ../client
+npm test
+npm run lint
+npm run build
+```
+
+The Anthropic SDK is mocked in server tests. A live API key is only needed to
+manually verify an actual initial analysis or follow-up chat request.
 
 ## Development Notes
 
 **Environment variables:**
-- Server: `ANTHROPIC_API_KEY`, `PORT` (default 3001), `CLIENT_URL`
+- Server: `ANTHROPIC_API_KEY` (required), `ANTHROPIC_MODEL` (default `claude-sonnet-5`), `PORT` (default 3001), `CLIENT_URL`
 - Client: `VITE_API_URL` (default http://localhost:3001/api)
 
 **No persistence:** All state is ephemeral (no localStorage or database). Load a sample scenario to start.
 
-**Anthropic costs:** ~$0.01-0.03 per analysis with Claude Sonnet 4.5. The API requires a $5 minimum credit purchase.
+**Anthropic costs:** Usage depends on the configured model and the size of the
+incident logs and response. Check [Anthropic's current pricing](https://docs.anthropic.com/en/docs/about-claude/pricing)
+before deployment; model availability and pricing can change.
 
 ## License
 

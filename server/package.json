@@ -4,10 +4,12 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "lint": "tsc --noEmit",
+    "test": "tsx --test src/config/anthropic.test.ts src/services/anthropic.test.ts src/services/anthropicErrors.test.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@anthropic-ai/sdk": "^0.110.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.4",
     "express": "^4.21.0"
@@ -16,7 +18,12 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
-    "tsx": "^4.19.0",
+    "tsx": "^4.23.0",
     "typescript": "^5.6.0"
+  },
+  "overrides": {
+    "form-data": "^4.0.6",
+    "path-to-regexp": "^0.1.13",
+    "qs": "^6.15.3"
   }
 }
